@@ -25,7 +25,7 @@ function Altimeter({ altitude }) {
         </div>
 
         <div className="segment-display">
-          <div className="small-text">Altitude</div>
+          <div className="small-text">Loading...</div>
           <div id="altitude-value">{altitude}</div>
         </div>
       </div>

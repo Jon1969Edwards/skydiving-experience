@@ -19,13 +19,20 @@ body, html {
   background-image: url('./assets/images/earth-image.jpg');
   background-size: cover;
   background-position: center;
-  transition: transform 20s ease-in-out, filter 20s ease-in-out;
+  filter: blur(15px);
+  transform: scale(1);
+  animation: zoomAndBlur 20s ease-in-out forwards;
   z-index: 1;
 }
 
-.zoomed {
-  transform: scale(3); /* Zoom in */
-  filter: blur(0px); /* Clear blur */
+@keyframes zoomAndBlur {
+  50% {
+    filter: blur(0px); /* Clear blur quicker, at halfway point */
+  }
+  100% {
+    transform: scale(3);
+    filter: blur(0px);
+  }
 }
 
 #container {
@@ -187,7 +194,7 @@ body, html {
   height: 100%;
   background-color: black;
   opacity: 0;
-  z-index: 30; /* Ensure it's above other elements */
+  z-index: 30;
   transition: opacity 3s ease-in-out;
 }
 

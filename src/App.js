@@ -7,20 +7,15 @@ function App() {
   const [altitude, setAltitude] = useState(10000);
 
   useEffect(() => {
-    const backgroundImage = document.getElementById('background-image');
     const fadeOverlay = document.getElementById('fade-overlay');
     const welcomeText = document.getElementById('welcome-text');
-
-    setTimeout(() => {
-      backgroundImage.classList.add('zoomed');
-    }, 1000);
 
     setTimeout(() => {
       fadeOverlay.classList.add('fade-in');
       setTimeout(() => {
         welcomeText.classList.add('text-visible');
       }, 3000);
-    }, 12000);
+    }, 12000); 
 
     // Simulate altitude decrease (example logic)
     const totalDuration = 60000; 
@@ -31,7 +26,7 @@ function App() {
       progress += updateInterval;
       const altitudeValue = Math.round(10000 - (progress / totalDuration) * 10000);
       setAltitude(altitudeValue);
-      
+
       if (progress >= totalDuration) {
         clearInterval(interval);
       }
