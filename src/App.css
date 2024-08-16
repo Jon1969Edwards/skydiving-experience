@@ -4,14 +4,28 @@ body, html {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  background-image: url('./assets/images/earth-image.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
+}
+
+#background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('./assets/images/earth-image.jpg');
+  background-size: cover;
+  background-position: center;
+  transition: transform 20s ease-in-out, filter 20s ease-in-out;
+  z-index: 1;
+}
+
+.zoomed {
+  transform: scale(3); /* Zoom in */
+  filter: blur(0px); /* Clear blur */
 }
 
 #container {
@@ -19,14 +33,14 @@ body, html {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  z-index: 10;
 }
 
-#model-container canvas {
+#model-container {
   position: relative;
-  background-color: transparent !important;
   width: 100vw;
   height: 100vh;
-  z-index: 10;
+  z-index: 5; /* Model is above the background but below the altimeter */
 }
 
 #overlay {
@@ -77,13 +91,13 @@ body, html {
   z-index: 2;
 }
 
-.altimeter-bg {
+.altimeter-bg, .needle {
   width: 100%;
   height: 100%;
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 0;
+  z-index: 20;
   border-radius: 100%;
 }
 
@@ -93,8 +107,8 @@ body, html {
   position: absolute;
   top: 0;
   left: 0;
-  transform-origin: center center; /* Ensure rotation around the center */
-  z-index: 5;
+  transform-origin: center center;
+  z-index: 20;
   opacity: 0.5;
 }
 
@@ -105,7 +119,7 @@ body, html {
   bottom: 40%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 4;
+  z-index: 21;
 }
 
 .altitude {
@@ -115,7 +129,7 @@ body, html {
   bottom: 32%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 4;
+  z-index: 21;
   white-space: nowrap;
 }
 
@@ -171,10 +185,14 @@ body, html {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: transparent;
+  background-color: black;
   opacity: 0;
-  z-index: 20;
-  animation-fill-mode: forwards;
+  z-index: 30; /* Ensure it's above other elements */
+  transition: opacity 3s ease-in-out;
+}
+
+.fade-in {
+  opacity: 1;
 }
 
 .welcome-text {
@@ -186,10 +204,15 @@ body, html {
   font-size: 2em;
   color: white;
   opacity: 0;
-  z-index: 30;
+  z-index: 40;
   text-align: center;
-  animation-fill-mode: forwards;
+  transition: opacity 3s ease-in-out;
 }
+
+.text-visible {
+  opacity: 1;
+}
+
 
 @keyframes fadeInText {
   from { opacity: 0; }

@@ -1,55 +1,56 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import Altimeter from './components/Altimeter';
-import FadeOverlay from './components/FadeOverlay';
 import ThreeDModel from './components/ThreeDModel';
 
 function App() {
   const [altitude, setAltitude] = useState(10000);
-  const [showFade, setShowFade] = useState(false);
-  const [showWelcomeText, setShowWelcomeText] = useState(false);
 
   useEffect(() => {
-    const totalDuration = 60000; // Total duration for the altitude decrease and needle animation
-    const fadeStartTime = 12000; // Start fading at 12 seconds
+    const backgroundImage = document.getElementById('background-image');
+    const fadeOverlay = document.getElementById('fade-overlay');
+    const welcomeText = document.getElementById('welcome-text');
+
+    setTimeout(() => {
+      backgroundImage.classList.add('zoomed');
+    }, 1000);
+
+    setTimeout(() => {
+      fadeOverlay.classList.add('fade-in');
+      setTimeout(() => {
+        welcomeText.classList.add('text-visible');
+      }, 3000);
+    }, 12000);
+
+    // Simulate altitude decrease (example logic)
+    const totalDuration = 60000; 
     const updateInterval = 100;
     let progress = 0;
-    let interval;
 
-    function updateProgress() {
+    const interval = setInterval(() => {
       progress += updateInterval;
-      const progressPercentage = Math.min(progress / totalDuration, 1) * 100;
-      const altitudeValue = Math.round(10000 - (progressPercentage * 100));
+      const altitudeValue = Math.round(10000 - (progress / totalDuration) * 10000);
       setAltitude(altitudeValue);
-
-      if (progress >= fadeStartTime) {
-        setShowFade(true);
-        setTimeout(() => setShowWelcomeText(true), 3000); // Show welcome text after fade completes
-        setTimeout(() => window.location.href = '/test', 30000); // Redirect after 30 seconds on black screen
+      
+      if (progress >= totalDuration) {
+        clearInterval(interval);
       }
-
-      if (progress < totalDuration) {
-        interval = setTimeout(updateProgress, updateInterval);
-      }
-    }
-
-    updateProgress();
+    }, updateInterval);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
     <div className="App">
+      <div id="background-image"></div>
       <div id="container">
-        <div id="overlay">
-          <div id="model-container"></div>
+        <div id="model-container">
+          <ThreeDModel />
         </div>
       </div>
-      
-      <ThreeDModel />
-
       <Altimeter altitude={altitude} />
-      {showFade && <FadeOverlay showWelcomeText={showWelcomeText} />}
+      <div id="fade-overlay" className="fade-to-black"></div>
+      <div id="welcome-text" className="welcome-text">Welcome to VWR...</div>
     </div>
   );
 }
