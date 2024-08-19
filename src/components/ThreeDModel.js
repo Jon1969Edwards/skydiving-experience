@@ -6,6 +6,7 @@ const ThreeDModel = () => {
   const mountRef = useRef(null);
   const mixerRef = useRef(null);
   const headRef = useRef(null);
+  const waistRef = useRef(null); // Reference for the waist
 
   useEffect(() => {
     const currentMount = mountRef.current;
@@ -35,24 +36,11 @@ const ThreeDModel = () => {
           scene.add(model);
 
           model.traverse((object) => {
-            if (object.isBone && object.name === 'mixamorigNeck') {
-              headRef.current = object;
+            if (object.isBone) {
+              if (object.name === 'mixamorigNeck') headRef.current = object;
+              if (object.name === 'mixamorigSpine') waistRef.current = object; // Capture the spine or waist bone
             }
           });
-
-          const mixer = new THREE.AnimationMixer(model);
-          mixerRef.current = mixer;
-
-          if (gltf.animations.length) {
-            console.log("Available animations:", gltf.animations.map(clip => clip.name));
-            const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
-            if (idleClip) {
-              const idleAction = mixer.clipAction(idleClip);
-              idleAction.play();
-            } else {
-              console.error("Idle animation not found.");
-            }
-          }
         },
         undefined,
         (error) => console.error('An error occurred while loading the model', error)
@@ -74,8 +62,18 @@ const ThreeDModel = () => {
         const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
         const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
 
+        // Inverted rotation to make the head look at the cursor
         headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, -mouseX * 0.5, 0.1);
         headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, -mouseY * 0.5, 0.1);
+      }
+
+      if (waistRef.current) {
+        const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        // Slightly less rotation for the waist/spine to simulate more natural movement
+        waistRef.current.rotation.y = THREE.MathUtils.lerp(waistRef.current.rotation.y, -mouseX * 0.3, 0.1);
+        waistRef.current.rotation.x = THREE.MathUtils.lerp(waistRef.current.rotation.x, -mouseY * 0.3, 0.1);
       }
     };
 
