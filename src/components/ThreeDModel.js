@@ -5,94 +5,178 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 const ThreeDModel = () => {
   const mountRef = useRef(null);
   const mixerRef = useRef(null);
-  const headRef = useRef(null);
-  const waistRef = useRef(null); // Reference for the waist
+  const neckRef = useRef(null);
+  const waistRef = useRef(null);
+  const currentlyAnimatingRef = useRef(false); // Use useRef for currentlyAnimating
 
   useEffect(() => {
-    const currentMount = mountRef.current;
     const clock = new THREE.Clock();
+    const currentMount = mountRef.current;
 
-    let scene = new THREE.Scene();
-    let renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    const scene = new THREE.Scene();
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     currentMount.appendChild(renderer.domElement);
 
-    let camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 0.9, 13.9);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, -3, 30);
 
     const MODEL_PATH = 'https://holydiver2.s3.eu-north-1.amazonaws.com/falling2.glb';
+    const textureLoader = new THREE.TextureLoader();
+    const stacyTexture = textureLoader.load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
+    stacyTexture.flipY = false;
+    const stacyMaterial = new THREE.MeshPhongMaterial({ map: stacyTexture, color: 0xffffff, skinning: true });
 
-    const loadModel = (modelPath) => {
-      const loader = new GLTFLoader();
+    const loader = new GLTFLoader();
 
-      loader.load(
-        modelPath,
-        (gltf) => {
-          const model = gltf.scene;
-          model.rotation.y = Math.PI;
-          model.position.y = -0.9;
-          model.position.z = 7;
+    loader.load(MODEL_PATH, (gltf) => {
+      const model = gltf.scene;
+      model.scale.set(7, 7, 7);
+      model.position.y = -11;
+      scene.add(model);
 
-          scene.add(model);
+      const fileAnimations = gltf.animations;
+      fileAnimations.forEach((clip) => {
+        console.log('Animation name:', clip.name);
+      });
+      model.traverse((object) => {
+        if (object.isMesh) {
+          object.castShadow = true;
+          object.receiveShadow = true;
+          object.material = stacyMaterial;
+        }
+        if (object.isBone && object.name === 'mixamorigNeck') {
+          neckRef.current = object;
+        }
+        if (object.isBone && object.name === 'mixamorigSpine') {
+          waistRef.current = object;
+        }
+      });
 
-          model.traverse((object) => {
-            if (object.isBone) {
-              if (object.name === 'mixamorigNeck') headRef.current = object;
-              if (object.name === 'mixamorigSpine') waistRef.current = object; // Capture the spine or waist bone
-            }
-          });
-        },
-        undefined,
-        (error) => console.error('An error occurred while loading the model', error)
-      );
-    };
+      mixerRef.current = new THREE.AnimationMixer(model);
 
-    const addLights = () => {
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.61);
-      hemiLight.position.set(0, 50, 0);
-      scene.add(hemiLight);
+      const animationClip = THREE.AnimationClip.findByName(fileAnimations, 'Armature|mixamo.com|Layer0');
+      animationClip.tracks.splice(3, 3);
+      animationClip.tracks.splice(9, 3);
+      const animationAction = mixerRef.current.clipAction(animationClip);
+      animationAction.play();
 
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.54);
-      dirLight.position.set(-8, 12, 8);
-      scene.add(dirLight);
-    };
+      const possibleAnims = fileAnimations.filter((val) => val.name !== 'Armature|mixamo.com|Layer0').map((val) => {
+        let clip = THREE.AnimationClip.findByName(fileAnimations, val.name);
+        clip.tracks.splice(3, 3);
+        clip.tracks.splice(9, 3);
+        return mixerRef.current.clipAction(clip);
+      });
 
-    const onMouseMove = (event) => {
-      if (headRef.current) {
-        const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+      window.addEventListener('click', () => {
+        if (!currentlyAnimatingRef.current) {
+          currentlyAnimatingRef.current = true;
+          const animIndex = Math.floor(Math.random() * possibleAnims.length);
+          playModifierAnimation(animationAction, 0.25, possibleAnims[animIndex], 0.25);
+        }
+      });
 
-        // Inverted rotation to make the head look at the cursor
-        headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, -mouseX * 0.5, 0.1);
-        headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, -mouseY * 0.5, 0.1);
+      function playModifierAnimation(from, fSpeed, to, tSpeed) {
+        if (!to) {
+          console.error('Animation action is undefined.');
+          currentlyAnimatingRef.current = false;
+          return;
+        }
+      
+        to.setLoop(THREE.LoopOnce);
+        to.reset();
+        to.play();
+        from.crossFadeTo(to, fSpeed, true);
+      
+        setTimeout(() => {
+          from.enabled = true;
+          to.crossFadeTo(from, tSpeed, true);
+          currentlyAnimatingRef.current = false;
+        }, to._clip.duration * 1000 - (tSpeed + fSpeed) * 1000);
       }
+      
+    });
 
-      if (waistRef.current) {
-        const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
-        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.61);
+    hemiLight.position.set(0, 50, 0);
+    scene.add(hemiLight);
 
-        // Slightly less rotation for the waist/spine to simulate more natural movement
-        waistRef.current.rotation.y = THREE.MathUtils.lerp(waistRef.current.rotation.y, -mouseX * 0.3, 0.1);
-        waistRef.current.rotation.x = THREE.MathUtils.lerp(waistRef.current.rotation.x, -mouseY * 0.3, 0.1);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.54);
+    dirLight.position.set(-8, 12, 8);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+    scene.add(dirLight);
+
+    const floorGeometry = new THREE.PlaneGeometry(5000, 5000);
+    const floorMaterial = new THREE.MeshPhongMaterial({ color: 0xeeeeee, shininess: 0 });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    floor.position.y = -11;
+    scene.add(floor);
+
+    document.addEventListener('mousemove', (e) => {
+      const mousecoords = getMousePos(e);
+      if (neckRef.current && waistRef.current) {
+        moveJoint(mousecoords, neckRef.current, 50);
+        moveJoint(mousecoords, waistRef.current, 30);
       }
+    });
+
+    const getMousePos = (e) => {
+      return { x: e.clientX, y: e.clientY };
     };
 
-    const update = () => {
-      requestAnimationFrame(update);
-      const delta = clock.getDelta();
-      if (mixerRef.current) mixerRef.current.update(delta);
+    const moveJoint = (mouse, joint, degreeLimit) => {
+      const degrees = getMouseDegrees(mouse.x, mouse.y, degreeLimit);
+      joint.rotation.y = THREE.MathUtils.degToRad(degrees.x);
+      joint.rotation.x = THREE.MathUtils.degToRad(degrees.y);
+    };
+
+    const getMouseDegrees = (x, y, degreeLimit) => {
+      let dx = 0,
+        dy = 0,
+        xdiff,
+        xPercentage,
+        ydiff,
+        yPercentage;
+
+      const w = { x: window.innerWidth, y: window.innerHeight };
+
+      if (x <= w.x / 2) {
+        xdiff = w.x / 2 - x;
+        xPercentage = (xdiff / (w.x / 2)) * 100;
+        dx = ((degreeLimit * xPercentage) / 100) * -1;
+      }
+      if (x >= w.x / 2) {
+        xdiff = x - w.x / 2;
+        xPercentage = (xdiff / (w.x / 2)) * 100;
+        dx = (degreeLimit * xPercentage) / 100;
+      }
+      if (y <= w.y / 2) {
+        ydiff = w.y / 2 - y;
+        yPercentage = (ydiff / (w.y / 2)) * 100;
+        dy = (((degreeLimit * 0.5) * yPercentage) / 100) * -1;
+      }
+      if (y >= w.y / 2) {
+        ydiff = y - w.y / 2;
+        yPercentage = (ydiff / (w.y / 2)) * 100;
+        dy = (degreeLimit * yPercentage) / 100;
+      }
+      return { x: dx, y: dy };
+    };
+
+    const animate = () => {
+      requestAnimationFrame(animate);
+      if (mixerRef.current) mixerRef.current.update(clock.getDelta());
       renderer.render(scene, camera);
     };
-
-    window.addEventListener('mousemove', onMouseMove);
-
-    loadModel(MODEL_PATH);
-    addLights();
-    update();
+    animate();
 
     return () => {
-      window.removeEventListener('mousemove', onMouseMove);
-      currentMount.removeChild(renderer.domElement);
+      if (currentMount) {
+        currentMount.removeChild(renderer.domElement); // Cleanup using the copied ref value
+      }
     };
   }, []);
 
