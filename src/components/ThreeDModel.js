@@ -14,7 +14,9 @@ const ThreeDModel = () => {
     const currentMount = mountRef.current;
 
     const scene = new THREE.Scene();
+    scene.background = null;
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setClearColor(0x000000, 0); 
     renderer.setSize(window.innerWidth, window.innerHeight);
     currentMount.appendChild(renderer.domElement);
 
@@ -22,15 +24,12 @@ const ThreeDModel = () => {
     camera.position.set(0, -3, 30);
 
     const MODEL_PATH = 'https://holydiver2.s3.eu-north-1.amazonaws.com/falling2.glb';
-    const textureLoader = new THREE.TextureLoader();
-    const stacyTexture = textureLoader.load('https://s3-us-west-2.amazonaws.com/s.cdpn.io/1376484/stacy.jpg');
-    stacyTexture.flipY = false;
-    const stacyMaterial = new THREE.MeshPhongMaterial({ map: stacyTexture, color: 0xffffff, skinning: true });
 
     const loader = new GLTFLoader();
 
     loader.load(MODEL_PATH, (gltf) => {
       const model = gltf.scene;
+      model.rotation.y = Math.PI;
       model.scale.set(7, 7, 7);
       model.position.y = -11;
       scene.add(model);
@@ -41,9 +40,10 @@ const ThreeDModel = () => {
       });
       model.traverse((object) => {
         if (object.isMesh) {
+          object.material.envMap = null;  // Remove any environment map
+          object.material.needsUpdate = true;
           object.castShadow = true;
           object.receiveShadow = true;
-          object.material = stacyMaterial;
         }
         if (object.isBone && object.name === 'mixamorigNeck') {
           neckRef.current = object;
@@ -106,14 +106,6 @@ const ThreeDModel = () => {
     dirLight.castShadow = true;
     dirLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
     scene.add(dirLight);
-
-    const floorGeometry = new THREE.PlaneGeometry(5000, 5000);
-    const floorMaterial = new THREE.MeshPhongMaterial({ color: 0xeeeeee, shininess: 0 });
-    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    floor.position.y = -11;
-    scene.add(floor);
 
     document.addEventListener('mousemove', (e) => {
       const mousecoords = getMousePos(e);
