@@ -4,27 +4,22 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 const ThreeDModel = () => {
   const mountRef = useRef(null);
+  const mixerRef = useRef(null);
+  const headRef = useRef(null);
 
   useEffect(() => {
     const currentMount = mountRef.current;
-    let scene, renderer, camera, model, mixer;
     const clock = new THREE.Clock();
 
+    let scene = new THREE.Scene();
+    let renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    currentMount.appendChild(renderer.domElement);
+
+    let camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0.9, 13.9);
+
     const MODEL_PATH = 'https://holydiver2.s3.eu-north-1.amazonaws.com/falling2.glb';
-
-    const init = () => {
-      scene = new THREE.Scene();
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      currentMount.appendChild(renderer.domElement);
-
-      camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.set(0, 0.9, 13.9); // Adjust camera position
-
-      loadModel(MODEL_PATH);
-      addLights();
-      update();
-    };
 
     const loadModel = (modelPath) => {
       const loader = new GLTFLoader();
@@ -32,20 +27,32 @@ const ThreeDModel = () => {
       loader.load(
         modelPath,
         (gltf) => {
-          model = gltf.scene;
-          // Correct the model's rotation and position
-          model.rotation.y = Math.PI; 
-          model.rotation.x = 0.9; // Ensure it's upright
-
-          // Move the model up and closer to the camera
-          model.position.y = -0.9; // Move up
-          model.position.z = 7; // Move closer to the camera
+          const model = gltf.scene;
+          model.rotation.y = Math.PI;
+          model.position.y = -0.9;
+          model.position.z = 7;
 
           scene.add(model);
 
-          mixer = new THREE.AnimationMixer(model);
-          const animationAction = mixer.clipAction(gltf.animations[0]);
-          animationAction.play();
+          model.traverse((object) => {
+            if (object.isBone && object.name === 'mixamorigNeck') {
+              headRef.current = object;
+            }
+          });
+
+          const mixer = new THREE.AnimationMixer(model);
+          mixerRef.current = mixer;
+
+          if (gltf.animations.length) {
+            console.log("Available animations:", gltf.animations.map(clip => clip.name));
+            const idleClip = THREE.AnimationClip.findByName(gltf.animations, 'idle');
+            if (idleClip) {
+              const idleAction = mixer.clipAction(idleClip);
+              idleAction.play();
+            } else {
+              console.error("Idle animation not found.");
+            }
+          }
         },
         undefined,
         (error) => console.error('An error occurred while loading the model', error)
@@ -62,16 +69,31 @@ const ThreeDModel = () => {
       scene.add(dirLight);
     };
 
+    const onMouseMove = (event) => {
+      if (headRef.current) {
+        const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+
+        headRef.current.rotation.y = THREE.MathUtils.lerp(headRef.current.rotation.y, -mouseX * 0.5, 0.1);
+        headRef.current.rotation.x = THREE.MathUtils.lerp(headRef.current.rotation.x, -mouseY * 0.5, 0.1);
+      }
+    };
+
     const update = () => {
       requestAnimationFrame(update);
       const delta = clock.getDelta();
-      if (mixer) mixer.update(delta);
+      if (mixerRef.current) mixerRef.current.update(delta);
       renderer.render(scene, camera);
     };
 
-    init();
+    window.addEventListener('mousemove', onMouseMove);
+
+    loadModel(MODEL_PATH);
+    addLights();
+    update();
 
     return () => {
+      window.removeEventListener('mousemove', onMouseMove);
       currentMount.removeChild(renderer.domElement);
     };
   }, []);
