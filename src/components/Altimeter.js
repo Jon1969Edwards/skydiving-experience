@@ -22,7 +22,7 @@ function Altimeter() {
           } else {
             clearInterval(interval);
           }
-        }, 50); // Slow increment every 50ms
+        }, 150); // Slow increment every 50ms
         return;
       }
 
@@ -38,7 +38,7 @@ function Altimeter() {
           } else {
             clearInterval(interval);
           }
-        }, 50); // Slow increment every 50ms
+        }, 150); // Slow increment every 50ms
       };
 
       for (let img of images) {
@@ -75,7 +75,7 @@ function Altimeter() {
   }, []);
 
   useEffect(() => {
-    const angle = (loadingPercentage / 100) * 360; // Map 0-100% to 0°-360°
+    const angle = 360 - (loadingPercentage / 100) * 360; // Map 0-100% to 0°-360°
     console.log(`Needle Update - Percentage: ${loadingPercentage}, Angle: ${angle}`);
 
     if (needleRef.current) {
@@ -102,7 +102,7 @@ function Altimeter() {
         </div>
         <div className="text-container" id="text-container">
           <div className="loading-text" id="loading-text">
-            {loadingPercentage}%
+            {loadingPercentage}% (just for testing)
           </div>
         </div>
       </div>

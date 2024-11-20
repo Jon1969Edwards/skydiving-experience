@@ -34,3 +34,20 @@
   transition: transform 0.1s linear; /* Smooth rotation */
 }
 
+.text-container {
+  position: absolute;
+  top: 10%; /* Adjust position */
+  left: 30%; /* Center horizontally */
+  transform: translateX(-50%);
+  font-size: 24px;
+  color: red;
+  z-index: 999;
+}
+
+/* Optional: Top-right position */
+.text-container.top-right {
+  top: 10%;
+  right: 10%;
+  left: auto; /* Override left positioning */
+  transform: none; /* No need for centering adjustments */
+}
