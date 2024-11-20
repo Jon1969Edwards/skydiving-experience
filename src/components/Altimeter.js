@@ -1,17 +1,87 @@
-import React, { useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useState, useRef } from 'react';
 import './altimeter.css';
 
-function Altimeter({ altitude, loadingPercentage }) {
+function Altimeter() {
+  const [loadingPercentage, setLoadingPercentage] = useState(0);
   const needleRef = useRef(null);
 
   useEffect(() => {
-    // Calculate the needle rotation based on the altitude
-    const angle = (altitude / 10000) * -360; // Adjust range based on max altitude
+    const updateProgress = () => {
+      const images = document.images; // Get all images on the page
+      const totalImages = images.length;
+      let loadedImages = 0;
+      let progress = 0; // Track progress incrementally
+
+      console.log(`Total Images Found: ${totalImages}`);
+
+      if (totalImages === 0) {
+        const interval = setInterval(() => {
+          if (progress < 100) {
+            progress += 1;
+            setLoadingPercentage(progress);
+          } else {
+            clearInterval(interval);
+          }
+        }, 50); // Slow increment every 50ms
+        return;
+      }
+
+      const imageLoadHandler = () => {
+        loadedImages++;
+        console.log(`Image loaded: ${loadedImages}/${totalImages}`);
+        const targetPercentage = Math.round((loadedImages / totalImages) * 100);
+
+        const interval = setInterval(() => {
+          if (progress < targetPercentage) {
+            progress += 1; // Gradually increment progress
+            setLoadingPercentage(progress);
+          } else {
+            clearInterval(interval);
+          }
+        }, 50); // Slow increment every 50ms
+      };
+
+      for (let img of images) {
+        if (img.complete) {
+          imageLoadHandler();
+        } else {
+          img.addEventListener('load', imageLoadHandler);
+          img.addEventListener('error', imageLoadHandler);
+        }
+      }
+
+      window.addEventListener('load', () => {
+        console.log('Page fully loaded!');
+        const interval = setInterval(() => {
+          if (progress < 100) {
+            progress += 1;
+            setLoadingPercentage(progress);
+          } else {
+            clearInterval(interval);
+          }
+        }, 50); // Slow increment every 50ms
+      });
+    };
+
+    updateProgress();
+
+    return () => {
+      console.log('Cleaning up listeners...');
+      for (let img of document.images) {
+        img.removeEventListener('load', updateProgress);
+        img.removeEventListener('error', updateProgress);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const angle = (loadingPercentage / 100) * 360; // Map 0-100% to 0°-360°
+    console.log(`Needle Update - Percentage: ${loadingPercentage}, Angle: ${angle}`);
+
     if (needleRef.current) {
-      needleRef.current.style.transform = `translate(-50%, -100%) rotate(${angle}deg)`;
+      needleRef.current.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
     }
-  }, [altitude]);
+  }, [loadingPercentage]);
 
   return (
     <div className="container">
@@ -39,10 +109,5 @@ function Altimeter({ altitude, loadingPercentage }) {
     </div>
   );
 }
-
-Altimeter.propTypes = {
-  altitude: PropTypes.number.isRequired,
-  loadingPercentage: PropTypes.number.isRequired,
-};
 
 export default Altimeter;

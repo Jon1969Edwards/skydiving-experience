@@ -15,8 +15,8 @@
 
 .needle-container {
   position: absolute;
-  top: 40%; /* Adjust this to move the needle closer to the center */
-  left: 86%; /* Adjust this to center horizontally */
+  top: 20%; /* Adjust this to move the needle closer to the center */
+  left: 75%; /* Adjust this to center horizontally */
   width: 20%; /* Adjust size to fit the altimeter circle */
   height: 20%; /* Maintain circular dimensions */
   transform: translate(-50%, -50%); /* Ensure proper centering */
@@ -25,11 +25,12 @@
 
 .needle {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%; /* Needle scales with the container */
+  top: 50%; /* Center vertically in the container */
+  left: 55%; /* Center horizontally in the container */
+  width: 100%; /* Ensure needle scales to container */
   height: auto; /* Maintain aspect ratio */
-  transform-origin: 50% 50%; /* Pivot at the bottom center of the needle */
+  transform-origin: 50% 50%; /* Pivot at the center of the needle */
+  transform: translate(-50%, -50%) rotate(0deg); /* Initial position */
+  transition: transform 0.1s linear; /* Smooth rotation */
 }
-
 
