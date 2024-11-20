@@ -23,15 +23,19 @@ const ThreeDModel = () => {
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, -3, 30);
 
-    const MODEL_PATH = 'https://holydiver2.s3.eu-north-1.amazonaws.com/falling2.glb';
+    const MODEL_PATH = 'https://vwr-web1.s3.us-west-1.amazonaws.com/jon/skydiver_model/falling_revised.glb';
 
     const loader = new GLTFLoader();
 
     loader.load(MODEL_PATH, (gltf) => {
       const model = gltf.scene;
       model.rotation.y = Math.PI;
-      model.scale.set(7, 7, 7);
-      model.position.y = -11;
+      model.scale.set(8, 7, 7);
+      model.position.y = -10.5;
+
+      model.rotation.x = THREE.MathUtils.degToRad(35); // Tilt the model back
+      model.rotation.y = THREE.MathUtils.degToRad(195); // Slight adjustment to counter leaning to the right
+
       scene.add(model);
 
       const fileAnimations = gltf.animations;
@@ -113,7 +117,24 @@ const ThreeDModel = () => {
         moveJoint(mousecoords, neckRef.current, 50);
         moveJoint(mousecoords, waistRef.current, 30);
       }
+      
+      // Move the camera based on cursor movement for a more noticeable effect
+      moveCamera(mousecoords);
     });
+
+    const moveCamera = (mouse) => {
+      const w = { x: window.innerWidth, y: window.innerHeight };
+      
+      // Calculate normalized mouse positions (-1 to 1)
+      const xNorm = (mouse.x / w.x) * 2 - 1;
+      const yNorm = (mouse.y / w.y) * 2 - 1;
+      
+      // Apply larger movements to the camera position
+      const movementFactor = 5; // Increase this to amplify the effect
+      camera.position.x = xNorm * movementFactor;
+      camera.position.y = -yNorm * movementFactor;
+      camera.lookAt(0, 0, 0); // Ensure camera still looks at the scene center
+    };
 
     const getMousePos = (e) => {
       return { x: e.clientX, y: e.clientY };

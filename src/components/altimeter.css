@@ -1,0 +1,35 @@
+.container {
+  position: absolute;
+  bottom: -10px; /* Adjust for positioning */
+  left: -10px; /* Adjust for positioning */
+  width: 600px; /* Adjust size of altimeter */
+  height: 600px; /* Match height to width for circular altimeter */
+  z-index: 10; /* Ensure it's on top */
+}
+
+.altimeter-bg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.needle-container {
+  position: absolute;
+  top: 40%; /* Adjust this to move the needle closer to the center */
+  left: 86%; /* Adjust this to center horizontally */
+  width: 20%; /* Adjust size to fit the altimeter circle */
+  height: 20%; /* Maintain circular dimensions */
+  transform: translate(-50%, -50%); /* Ensure proper centering */
+  z-index: 2; /* Ensure it appears above the altimeter background */
+}
+
+.needle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%; /* Needle scales with the container */
+  height: auto; /* Maintain aspect ratio */
+  transform-origin: 50% 50%; /* Pivot at the bottom center of the needle */
+}
+
+
