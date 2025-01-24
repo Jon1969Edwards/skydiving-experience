@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/skydiving-experience/static/css/main.eb67814a.css",
+    "main.js": "/skydiving-experience/static/js/main.626cc2fb.js",
+    "static/js/453.f14d0ee5.chunk.js": "/skydiving-experience/static/js/453.f14d0ee5.chunk.js",
+    "static/media/earth-image.jpg": "/skydiving-experience/static/media/earth-image.28e113d62b1d0bf9c6c1.jpg",
+    "static/media/digital-7-mono.ttf": "/skydiving-experience/static/media/digital-7-mono.d60dc6e509634f05c9b3.ttf",
+    "index.html": "/skydiving-experience/index.html",
+    "main.eb67814a.css.map": "/skydiving-experience/static/css/main.eb67814a.css.map",
+    "main.626cc2fb.js.map": "/skydiving-experience/static/js/main.626cc2fb.js.map",
+    "453.f14d0ee5.chunk.js.map": "/skydiving-experience/static/js/453.f14d0ee5.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.eb67814a.css",
+    "static/js/main.626cc2fb.js"
+  ]
+}
