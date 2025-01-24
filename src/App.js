@@ -10,29 +10,43 @@ function App() {
     const fadeOverlay = document.getElementById('fade-overlay');
     const welcomeText = document.getElementById('welcome-text');
 
-    setTimeout(() => {
-      fadeOverlay.classList.add('fade-in');
-      setTimeout(() => {
-        welcomeText.classList.add('text-visible');
-      }, 3000);
-    }, 12000); 
+    // Start fade overlay animation after 12 seconds
+    const fadeOverlayTimeout = setTimeout(() => {
+      if (fadeOverlay) {
+        fadeOverlay.classList.add('fade-in');
+      }
 
-    // Simulate altitude decrease (example logic)
-    const totalDuration = 60000; 
-    const updateInterval = 100;
+      // Start welcome text animation 3 seconds after overlay fade
+      const welcomeTextTimeout = setTimeout(() => {
+        if (welcomeText) {
+          welcomeText.classList.add('text-visible');
+        }
+      }, 3000);
+
+      // Clear nested timeout on cleanup
+      return () => clearTimeout(welcomeTextTimeout);
+    }, 12000);
+
+    // Simulate altitude decrease
+    const totalDuration = 60000; // Total time for altitude to reach 0 (60 seconds)
+    const updateInterval = 100; // Altitude updates every 100ms
     let progress = 0;
 
-    const interval = setInterval(() => {
+    const altitudeInterval = setInterval(() => {
       progress += updateInterval;
-      const altitudeValue = Math.round(10000 - (progress / totalDuration) * 10000);
+      const altitudeValue = Math.max(0, Math.round(10000 - (progress / totalDuration) * 10000));
       setAltitude(altitudeValue);
 
       if (progress >= totalDuration) {
-        clearInterval(interval);
+        clearInterval(altitudeInterval);
       }
     }, updateInterval);
 
-    return () => clearInterval(interval);
+    // Cleanup timeouts and intervals on component unmount
+    return () => {
+      clearTimeout(fadeOverlayTimeout);
+      clearInterval(altitudeInterval);
+    };
   }, []);
 
   return (

@@ -12,7 +12,6 @@ function Altimeter() {
       let loadedImages = 0;
       let progress = 0; // Track progress incrementally
 
-      console.log(`Total Images Found: ${totalImages}`);
 
       if (totalImages === 0) {
         const interval = setInterval(() => {
@@ -28,7 +27,6 @@ function Altimeter() {
 
       const imageLoadHandler = () => {
         loadedImages++;
-        console.log(`Image loaded: ${loadedImages}/${totalImages}`);
         const targetPercentage = Math.round((loadedImages / totalImages) * 100);
 
         const interval = setInterval(() => {
@@ -51,7 +49,6 @@ function Altimeter() {
       }
 
       window.addEventListener('load', () => {
-        console.log('Page fully loaded!');
         const interval = setInterval(() => {
           if (progress < 100) {
             progress += 1;
@@ -66,7 +63,6 @@ function Altimeter() {
     updateProgress();
 
     return () => {
-      console.log('Cleaning up listeners...');
       for (let img of document.images) {
         img.removeEventListener('load', updateProgress);
         img.removeEventListener('error', updateProgress);
@@ -76,7 +72,6 @@ function Altimeter() {
 
   useEffect(() => {
     const angle = 360 - (loadingPercentage / 100) * 360; // Map 0-100% to 0°-360°
-    console.log(`Needle Update - Percentage: ${loadingPercentage}, Angle: ${angle}`);
 
     if (needleRef.current) {
       needleRef.current.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
