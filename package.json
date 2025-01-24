@@ -15,11 +15,14 @@
     "three": "^0.167.1",
     "web-vitals": "^2.1.4"
   },
+  "homepage": "https://jon1969edwards.github.io/skydiving-experience",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts --openssl-legacy-provider build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "eslintConfig": {
     "extends": [
