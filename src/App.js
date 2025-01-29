@@ -1,65 +1,64 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import Altimeter from './components/Altimeter';
 import ThreeDModel from './components/ThreeDModel';
+import FadeOverlay from './components/FadeOverlay';
+import Avatar from './components/Avatar';
 
 function App() {
+  const [loadingComplete, setLoadingComplete] = useState(false);
   const [altitude, setAltitude] = useState(10000);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const fadeOverlay = document.getElementById('fade-overlay');
-    const welcomeText = document.getElementById('welcome-text');
+    // Unified loading/altitude simulation
+    const totalDuration = 60000; // 60 seconds total
+    const startTime = Date.now();
+    const endTime = startTime + totalDuration;
 
-    // Start fade overlay animation after 12 seconds
-    const fadeOverlayTimeout = setTimeout(() => {
-      if (fadeOverlay) {
-        fadeOverlay.classList.add('fade-in');
+    const updateProgress = () => {
+      const now = Date.now();
+      const remaining = endTime - now;
+      const newProgress = ((totalDuration - remaining) / totalDuration) * 100;
+      
+      setProgress(Math.min(newProgress, 100));
+      setAltitude(10000 - (newProgress * 100));
+
+      if (remaining > 0) {
+        requestAnimationFrame(updateProgress);
+      } else {
+        setLoadingComplete(true);
       }
-
-      // Start welcome text animation 3 seconds after overlay fade
-      const welcomeTextTimeout = setTimeout(() => {
-        if (welcomeText) {
-          welcomeText.classList.add('text-visible');
-        }
-      }, 3000);
-
-      // Clear nested timeout on cleanup
-      return () => clearTimeout(welcomeTextTimeout);
-    }, 12000);
-
-    // Simulate altitude decrease
-    const totalDuration = 60000; // Total time for altitude to reach 0 (60 seconds)
-    const updateInterval = 100; // Altitude updates every 100ms
-    let progress = 0;
-
-    const altitudeInterval = setInterval(() => {
-      progress += updateInterval;
-      const altitudeValue = Math.max(0, Math.round(10000 - (progress / totalDuration) * 10000));
-      setAltitude(altitudeValue);
-
-      if (progress >= totalDuration) {
-        clearInterval(altitudeInterval);
-      }
-    }, updateInterval);
-
-    // Cleanup timeouts and intervals on component unmount
-    return () => {
-      clearTimeout(fadeOverlayTimeout);
-      clearInterval(altitudeInterval);
     };
+
+    requestAnimationFrame(updateProgress);
+
+    return () => cancelAnimationFrame(updateProgress);
   }, []);
 
   return (
     <div className="App">
-      <div id="background-image"></div>
+      <div 
+        id="background-image" 
+        style={{ 
+          transform: `scale(${1 + progress / 50})`,
+          filter: `blur(${15 - progress / 6}px)`
+        }}
+      ></div>
+
       <div id="container">
+        <Avatar />
         <div id="model-container">
-          <ThreeDModel />
+          <ThreeDModel altitude={altitude} />
         </div>
       </div>
-      <Altimeter altitude={altitude} />
-      <div id="fade-overlay" className="fade-to-black"></div>
-      <div id="welcome-text" className="welcome-text">Welcome to VWR...</div>
+      
+      <Altimeter 
+        progress={progress} 
+        onComplete={() => setLoadingComplete(true)} 
+      />
+      
+      <FadeOverlay active={loadingComplete} />
     </div>
   );
 }

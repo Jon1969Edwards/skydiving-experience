@@ -10,18 +10,74 @@ body, html {
   flex-direction: column;
 }
 
+/* Target small screens like Samsung Galaxy S8+ */
+@media screen and (max-width: 768px) {
+  #background-image {
+    background-size: cover;
+    background-position: center;
+  }
+
+  #container {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #model-container {
+    width: 100%;
+    height: auto;
+    max-height: 50vh; /* Limit model size on smaller screens */
+  }
+
+  #fade-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px; /* Smaller font for mobile */
+    text-align: center;
+  }
+
+  .welcome-text {
+    font-size: 18px;
+    text-align: center; /* Center the welcome message */
+    margin: 0 auto;
+  }
+
+  /* Ensure the Altimeter displays properly */
+  /* Adjust Altimeter placement for smaller screens */
+  #altimeter {
+    position: absolute;
+    top: 10%; /* Move it higher on smaller screens */
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 16px; /* Reduce font size */
+    color: red;
+  }
+}
+
 #background-image {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  height: 100vh; /* Takes up the full viewport height */
+  width: 100vw; /* Takes up the full viewport width */
   background-image: url('./assets/images/earth-image.jpg');
   background-size: cover;
   background-position: center;
-  filter: blur(15px);
-  transform: scale(1);
-  animation: zoomAndBlur 20s ease-in-out forwards;
+  /* transform: scale(1); */
+  transform: scale(calc(1 + (progress / 50))); /* Adjust zoom dynamically */
+  filter: blur(calc(15px - (progress / 6))); /* Reduce blur over time */
+  transition: transform 0.1s linear, filter 0.1s linear;
   z-index: 1;
 }
 
@@ -134,8 +190,18 @@ body, html {
   z-index: 999;
 }
 
+/* Add avatar styling */
+.avatar {
+  position: absolute;
+  z-index: 20;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  pointer-events: none;
+}
+
 /* Overlay fade-in effect */
 .fade-to-black {
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,1) 100%);
   position: absolute;
   top: 0;
   left: 0;
@@ -153,6 +219,7 @@ body, html {
 
 /* Welcome text fade-in effect */
 .welcome-text {
+  animation: fadeInText 1s ease-out 0.5s forwards;
   position: absolute;
   top: 50%;
   left: 50%;

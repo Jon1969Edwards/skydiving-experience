@@ -1,82 +1,22 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import './altimeter.css';
 
-function Altimeter() {
-  const [loadingPercentage, setLoadingPercentage] = useState(0);
+function Altimeter({ progress, onComplete }) {
   const needleRef = useRef(null);
 
   useEffect(() => {
-    const updateProgress = () => {
-      const images = document.images; // Get all images on the page
-      const totalImages = images.length;
-      let loadedImages = 0;
-      let progress = 0; // Track progress incrementally
-
-
-      if (totalImages === 0) {
-        const interval = setInterval(() => {
-          if (progress < 100) {
-            progress += 1;
-            setLoadingPercentage(progress);
-          } else {
-            clearInterval(interval);
-          }
-        }, 150); // Slow increment every 50ms
-        return;
-      }
-
-      const imageLoadHandler = () => {
-        loadedImages++;
-        const targetPercentage = Math.round((loadedImages / totalImages) * 100);
-
-        const interval = setInterval(() => {
-          if (progress < targetPercentage) {
-            progress += 1; // Gradually increment progress
-            setLoadingPercentage(progress);
-          } else {
-            clearInterval(interval);
-          }
-        }, 150); // Slow increment every 50ms
-      };
-
-      for (let img of images) {
-        if (img.complete) {
-          imageLoadHandler();
-        } else {
-          img.addEventListener('load', imageLoadHandler);
-          img.addEventListener('error', imageLoadHandler);
-        }
-      }
-
-      window.addEventListener('load', () => {
-        const interval = setInterval(() => {
-          if (progress < 100) {
-            progress += 1;
-            setLoadingPercentage(progress);
-          } else {
-            clearInterval(interval);
-          }
-        }, 50); // Slow increment every 50ms
-      });
-    };
-
-    updateProgress();
-
-    return () => {
-      for (let img of document.images) {
-        img.removeEventListener('load', updateProgress);
-        img.removeEventListener('error', updateProgress);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const angle = 360 - (loadingPercentage / 100) * 360; // Map 0-100% to 0°-360°
+    // Correct counterclockwise rotation starting from the top
+    const angle = -((progress / 100) * 360); // Negative for counterclockwise rotation
 
     if (needleRef.current) {
       needleRef.current.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
     }
-  }, [loadingPercentage]);
+
+    if (progress >= 100) {
+      onComplete();
+    }
+  }, [progress, onComplete]);
 
   return (
     <div className="container">
@@ -86,23 +26,28 @@ function Altimeter() {
           alt="altimeter body"
           className="altimeter-bg"
         />
-        <div className="needle-container" id="needle-container">
+        <div className="needle-container">
           <img
-            id="needle"
             ref={needleRef}
             src="https://vwr-web1.s3.us-west-1.amazonaws.com/jon/vwr_dev_with_loading/gauge/Gauge_v4_NEEDLE.png"
-            alt="needle"
+            alt="altimeter needle"
             className="needle"
+            style={{ transform: 'translate(-50%, -50%) rotate(0deg)' }} // Start at top (0°)
           />
         </div>
-        <div className="text-container" id="text-container">
-          <div className="loading-text" id="loading-text">
-            {loadingPercentage}% (just for testing)
+        <div className="text-container top-right">
+          <div className="loading-text">
+            {Math.round(progress)}%
           </div>
         </div>
       </div>
     </div>
   );
 }
+
+Altimeter.propTypes = {
+  progress: PropTypes.number.isRequired,
+  onComplete: PropTypes.func.isRequired,
+};
 
 export default Altimeter;

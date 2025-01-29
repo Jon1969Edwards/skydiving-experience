@@ -2,8 +2,8 @@
   position: absolute;
   bottom: -10px; /* Adjust for positioning */
   left: -10px; /* Adjust for positioning */
-  width: 600px; /* Adjust size of altimeter */
-  height: 600px; /* Match height to width for circular altimeter */
+  width: 400px; /* Adjust size of altimeter */
+  height: 400px; /* Match height to width for circular altimeter */
   z-index: 10; /* Ensure it's on top */
 }
 
@@ -31,7 +31,7 @@
   height: auto; /* Maintain aspect ratio */
   transform-origin: 50% 50%; /* Pivot at the center of the needle */
   transform: translate(-50%, -50%) rotate(0deg); /* Initial position */
-  transition: transform 0.1s linear; /* Smooth rotation */
+  transition: transform 0.2s ease-out; /* Smooth rotation */
 }
 
 .text-container {
